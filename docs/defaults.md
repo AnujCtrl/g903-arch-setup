@@ -40,14 +40,16 @@ Mental model: **top row = workspaces, bottom row = windows. Left side = previous
 
 `hyprland/g903.conf` uses `bindd` (bind-with-description) rather than plain `bind`, so each entry shows up in the `omarchy-menu-keybindings` walker view alongside the rest of your shortcuts. The `Super+K` browser will list:
 
-- `G903 top-left thumb → workspace LEFT`
-- `G903 top-right thumb → workspace RIGHT`
-- `G903 bottom-left thumb → previous window`
-- `G903 bottom-right thumb → next window`
-- `G903 wheel tilt LEFT → copy`
-- `G903 wheel tilt RIGHT → paste`
+- `G903 top-left → prev workspace`
+- `G903 top-right → next workspace`
+- `G903 bottom-left → prev window`
+- `G903 bottom-right → next window`
+- `G903 wheel-left → copy`
+- `G903 wheel-right → paste`
 
-Omarchy's script reverse-maps `code:191` → keysym `F13` etc. when displaying, so the key column reads as `F13`, `F14`, … instead of raw codes. If you add your own bindings to this snippet, use `bindd` (not `bind`) and put your description in the third field — use `→`, `:`, or `;` instead of `,` (which is the field delimiter).
+Omarchy's script reverse-maps `code:NNN` to a keysym name for the left column. On most xkb layouts, codes **191–194 are overridden by `symbols/inet` to read as `XF86Tools` / `XF86Launch5` / `XF86Launch6` / `XF86Launch7`** rather than `F13`–`F16`. That's a cosmetic detail — the keys still fire via `code:N` regardless of keysym name. Codes 201/202 (the wheel tilts) aren't overridden, so they display cleanly as `F23` / `F24`.
+
+If you add your own bindings to this snippet, use `bindd` (not `bind`) and put your description in the third field — use `→`, `:`, or `;` instead of `,` (which is the `bindd` field delimiter). Walker truncates descriptions around 30 characters, so keep them tight.
 
 ### Why `Ctrl+Insert` / `Shift+Insert` for copy/paste
 
