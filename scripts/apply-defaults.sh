@@ -53,13 +53,14 @@ for p in $enabled_profiles; do
   done
 done
 
-# 4. Reset wheel-tilt buttons (9, 10) to native horizontal scroll.
-# Some prior configs leave these as Ctrl+- / Ctrl+= browser-zoom macros,
-# which then leaks to terminals (zoom font there too).
-log "Resetting wheel-tilt buttons to native wheel-left / wheel-right"
+# 4. Map wheel-tilt buttons to F19/F20 — Hyprland binds them to
+# Omarchy's universal copy (Ctrl+Insert) / paste (Shift+Insert).
+# This replaces the libratbag default of native horizontal scroll;
+# you can revert with `action set special wheel-left/wheel-right`.
+log "Mapping wheel-tilt buttons 9/10 to KEY_F19/KEY_F20 (copy/paste)"
 for p in $enabled_profiles; do
-  ratbagctl "$device" profile "$p" button 9  action set special wheel-left  >/dev/null 2>&1 || true
-  ratbagctl "$device" profile "$p" button 10 action set special wheel-right >/dev/null 2>&1 || true
+  ratbagctl "$device" profile "$p" button 9  action set macro KEY_F19 >/dev/null
+  ratbagctl "$device" profile "$p" button 10 action set macro KEY_F20 >/dev/null
 done
 
 log "Final thumb-button assignments:"

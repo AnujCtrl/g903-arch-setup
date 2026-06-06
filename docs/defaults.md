@@ -31,8 +31,14 @@ The shipped default turns the G903's 4 thumb buttons into a workspace/window nav
 | Top-right thumb | 6 | `F16` | 194 | `workspace, e+1` (workspace right) |
 | Bottom-left thumb | 3 | `F13` | 191 | `cyclenext, prev` (previous window) |
 | Bottom-right thumb | 5 | `F15` | 193 | `cyclenext` (next window) |
+| Wheel tilt **left** | 9 | `F19` | 197 | `sendshortcut, CTRL, Insert, activewindow` (Omarchy universal **copy**) |
+| Wheel tilt **right** | 10 | `F20` | 198 | `sendshortcut, SHIFT, Insert, activewindow` (Omarchy universal **paste**) |
 
-Mental model: **top row = workspaces, bottom row = windows. Left side = previous, right side = next.**
+Mental model: **top row = workspaces, bottom row = windows. Left side = previous, right side = next. Wheel tilt = clipboard (left = take, right = give).**
+
+### Why `Ctrl+Insert` / `Shift+Insert` for copy/paste
+
+This is Omarchy's pattern (see `~/.local/share/omarchy/default/hypr/bindings/clipboard.conf`). It's the **universal** clipboard chord on Linux/Wayland: terminals don't intercept `Ctrl+Insert` the way they intercept `Ctrl+C` (SIGINT), so the same gesture works in your shell, your browser, your IDE, and Electron apps without a per-app override. Hyprland's `sendshortcut` dispatcher synthesizes the chord and sends it to the focused window.
 
 ## Why `cyclenext` instead of `movefocus l/r`
 
