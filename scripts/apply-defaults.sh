@@ -53,14 +53,16 @@ for p in $enabled_profiles; do
   done
 done
 
-# 4. Map wheel-tilt buttons to F19/F20 — Hyprland binds them to
+# 4. Map wheel-tilt buttons to F23/F24 — Hyprland binds them to
 # Omarchy's universal copy (Ctrl+Insert) / paste (Shift+Insert).
 # This replaces the libratbag default of native horizontal scroll;
 # you can revert with `action set special wheel-left/wheel-right`.
-log "Mapping wheel-tilt buttons 9/10 to KEY_F19/KEY_F20 (copy/paste)"
+# F23/F24 (not F19/F20) because some xkb layouts alias the F20
+# keycode to XF86AudioMicMute, which Omarchy binds to mic mute.
+log "Mapping wheel-tilt buttons 9/10 to KEY_F23/KEY_F24 (copy/paste)"
 for p in $enabled_profiles; do
-  ratbagctl "$device" profile "$p" button 9  action set macro KEY_F19 >/dev/null
-  ratbagctl "$device" profile "$p" button 10 action set macro KEY_F20 >/dev/null
+  ratbagctl "$device" profile "$p" button 9  action set macro KEY_F23 >/dev/null
+  ratbagctl "$device" profile "$p" button 10 action set macro KEY_F24 >/dev/null
 done
 
 log "Final thumb-button assignments:"
