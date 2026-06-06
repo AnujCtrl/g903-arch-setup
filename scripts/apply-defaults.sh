@@ -23,18 +23,29 @@ device="$(ratbagctl list 2>/dev/null | head -1 | cut -d: -f1)"
 [ -n "$device" ] || err "No libratbag device found. Is the mouse connected and ratbagd running?"
 log "Using libratbag device: $device"
 
-# 2. Reassign thumb buttons.
-log "Setting buttons 4-7 to F13-F16"
-ratbagctl "$device" button 4 action set macro KEY_F13
-ratbagctl "$device" button 5 action set macro KEY_F14
-ratbagctl "$device" button 6 action set macro KEY_F15
-ratbagctl "$device" button 7 action set macro KEY_F16
+# 2. Activate profile 0 (so the layout matches a known baseline).
+log "Activating profile 0"
+ratbagctl "$device" profile active set 0 >/dev/null
 
-log "Current button assignments:"
-for i in 4 5 6 7; do
-  printf '    btn %s: ' "$i"
-  ratbagctl "$device" button "$i" action get
+# 3. Write F13-F16 to buttons 4-7 on EVERY enabled profile.
+# The G903 has 5 onboard profiles; the profile-cycle button (index 11)
+# rotates through enabled ones. If we only set the active profile,
+# an accidental cycle reverts behavior. Setting all enabled profiles
+# makes cycling a no-op for the thumb layout.
+enabled_profiles=$(
+  ratbagctl "$device" info \
+    | awk '/^Profile [0-9]+:/ && !/disabled/ { gsub(":", "", $2); print $2 }'
+)
+log "Writing F13-F16 to enabled profiles: $(echo $enabled_profiles | tr '\n' ' ')"
+for p in $enabled_profiles; do
+  for i in 4 5 6 7; do
+    key="KEY_F$((13 + i - 4))"
+    ratbagctl "$device" profile "$p" button "$i" action set macro "$key" >/dev/null
+  done
 done
+
+log "Final button assignments:"
+ratbagctl "$device" info | grep -E '^Profile|^  Button: [4567]' | sed 's/^/    /'
 
 # 3. Install Hyprland snippet.
 if [ ! -d "$HYPR_DIR" ]; then

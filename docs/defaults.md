@@ -57,10 +57,15 @@ Run from the repo root:
 
 What it does:
 
-1. Sets `ratbagctl` button 4–7 to `KEY_F13`–`KEY_F16` on the active G903 profile.
-2. Installs `hyprland/g903.conf` to `~/.config/hypr/g903.conf`.
-3. Appends `source = ~/.config/hypr/g903.conf` to `~/.config/hypr/hyprland.conf` (idempotent — only adds if not already present).
-4. Runs `hyprctl reload`.
+1. Activates profile 0 on the mouse (known baseline).
+2. Writes `KEY_F13`–`KEY_F16` to buttons 4–7 on **every enabled onboard profile**.
+3. Installs `hyprland/g903.conf` to `~/.config/hypr/g903.conf`.
+4. Appends `source = ~/.config/hypr/g903.conf` to `~/.config/hypr/hyprland.conf` (idempotent — only adds if not already present).
+5. Runs `hyprctl reload`.
+
+### Why all enabled profiles
+
+The G903 stores 5 onboard profiles (0–4) and the profile-cycle button (index 11, on the underside) rotates through the *enabled* ones. If you set only the active profile, an accidental press of the cycle button reverts to the old layout. Writing the F13–F16 mapping to every enabled profile makes the cycle button a no-op for the thumb layout while still letting you cycle DPI / LED presets per profile.
 
 ## Verifying after install
 
