@@ -1,0 +1,13 @@
+# Per-app override: Firefox.
+# Window class match: `firefox` (verify with `hyprctl clients`).
+#
+# GRAB_DEVICE="true" — only the remapped action fires; the original
+# BTN_SIDE / BTN_EXTRA events are swallowed.
+
+[remap]
+BTN_SIDE = ["KEY_LEFTCTRL-KEY_W"]               # back thumb -> Ctrl+W  (close tab)
+BTN_EXTRA = ["KEY_LEFTCTRL-KEY_T"]              # forward thumb -> Ctrl+T  (new tab)
+BTN_FORWARD = ["KEY_LEFTCTRL-KEY_LEFTSHIFT-KEY_T"]   # reopen closed tab
+
+[settings]
+GRAB_DEVICE = "true"

@@ -1,0 +1,9 @@
+# Per-app override: Alacritty.
+# Window class match: `Alacritty` (case-sensitive — verify with `hyprctl clients`).
+
+[remap]
+BTN_SIDE = ["KEY_LEFTCTRL-KEY_LEFTSHIFT-KEY_C"]      # back thumb -> Ctrl+Shift+C  (copy in terminal)
+BTN_EXTRA = ["KEY_LEFTCTRL-KEY_LEFTSHIFT-KEY_V"]     # forward thumb -> Ctrl+Shift+V  (paste)
+
+[settings]
+GRAB_DEVICE = "true"

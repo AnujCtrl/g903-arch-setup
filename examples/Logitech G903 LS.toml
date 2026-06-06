@@ -1,0 +1,18 @@
+# Default makima config for Logitech G903 LS.
+# Loaded when the focused window has no matching per-app override file.
+#
+# Empty [remap] + GRAB_DEVICE="false" = pure passthrough:
+# every button event reaches the focused app unchanged.
+#
+# Per-app overrides live in sibling files named:
+#   Logitech G903 LS::<window_class>.toml
+# Find a window class with `hyprctl clients` while the app is focused.
+#
+# Syntax for [remap] rules (combos use '-' inside one string):
+#   BTN_SIDE = ["KEY_LEFTCTRL-KEY_C"]      # back thumb -> Ctrl+C
+#   BTN_EXTRA = ["KEY_LEFTCTRL-KEY_V"]     # forward thumb -> Ctrl+V
+
+[remap]
+
+[settings]
+GRAB_DEVICE = "false"
