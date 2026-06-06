@@ -1,13 +1,20 @@
 # Per-app override: Firefox.
 # Window class match: `firefox` (verify with `hyprctl clients`).
 #
-# GRAB_DEVICE="true" — only the remapped action fires; the original
-# BTN_SIDE / BTN_EXTRA events are swallowed.
+# This file overrides the shipped global defaults whenever Firefox is
+# focused. The thumb buttons (which globally do workspace/focus
+# navigation) become Firefox tab actions here instead.
+#
+# `GRAB_DEVICE = "true"` means makima grabs the device exclusively while
+# Firefox is focused — the original KEY_F13..F16 events from the mouse
+# are suppressed, and only the remapped Ctrl+W / Ctrl+T / etc. reach
+# Firefox. This avoids the "tab closes AND workspace switches" problem.
 
 [remap]
-BTN_SIDE = ["KEY_LEFTCTRL-KEY_W"]               # back thumb -> Ctrl+W  (close tab)
-BTN_EXTRA = ["KEY_LEFTCTRL-KEY_T"]              # forward thumb -> Ctrl+T  (new tab)
-BTN_FORWARD = ["KEY_LEFTCTRL-KEY_LEFTSHIFT-KEY_T"]   # reopen closed tab
+KEY_F13 = ["KEY_LEFTCTRL-KEY_W"]                       # bottom-left thumb (btn3) -> close tab
+KEY_F14 = ["KEY_LEFTCTRL-KEY_T"]                       # top-left thumb    (btn4) -> new tab
+KEY_F15 = ["KEY_LEFTCTRL-KEY_LEFTSHIFT-KEY_T"]         # bottom-right      (btn5) -> reopen closed tab
+KEY_F16 = ["KEY_LEFTCTRL-KEY_TAB"]                     # top-right         (btn6) -> next tab
 
 [settings]
 GRAB_DEVICE = "true"

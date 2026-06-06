@@ -1,16 +1,38 @@
-# Default makima config for Logitech G903 LS.
-# Loaded when the focused window has no matching per-app override file.
+# Global passthrough makima config for Logitech G903 LS.
 #
-# Empty [remap] + GRAB_DEVICE="false" = pure passthrough:
-# every button event reaches the focused app unchanged.
+# IMPORTANT: this file is only meaningful when makima is RUNNING. The
+# repo's shipped default (scripts/apply-defaults.sh) keeps makima
+# STOPPED because the global mouse->Hyprland binds work without it.
 #
-# Per-app overrides live in sibling files named:
-#   Logitech G903 LS::<window_class>.toml
-# Find a window class with `hyprctl clients` while the app is focused.
+# If you enable makima for per-app overrides:
 #
-# Syntax for [remap] rules (combos use '-' inside one string):
-#   BTN_SIDE = ["KEY_LEFTCTRL-KEY_C"]      # back thumb -> Ctrl+C
-#   BTN_EXTRA = ["KEY_LEFTCTRL-KEY_V"]     # forward thumb -> Ctrl+V
+#   sudo systemctl enable --now makima
+#
+# …and you leave this file with `GRAB_DEVICE = "false"` plus an empty
+# [remap], Hyprland will see each F-key TWICE (once from the real
+# mouse, once from makima's virtual-keyboard echo) — workspaces and
+# focus will jump by 2 per press for any window that doesn't match a
+# per-app TOML.
+#
+# Two safe options:
+#
+#   (a) Delete this file. Hyprland gets the real keypresses directly;
+#       makima only intervenes when a per-app TOML matches.
+#
+#   (b) Replace with the explicit-identity-remap pattern below
+#       (uncomment), which uses GRAB_DEVICE="true" + identity rules
+#       so each press fires exactly once.
+#
+# See docs/per-app-recipes.md for the full explanation.
+
+# [remap]
+# KEY_F13 = ["KEY_F13"]
+# KEY_F14 = ["KEY_F14"]
+# KEY_F15 = ["KEY_F15"]
+# KEY_F16 = ["KEY_F16"]
+#
+# [settings]
+# GRAB_DEVICE = "true"
 
 [remap]
 

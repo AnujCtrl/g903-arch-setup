@@ -1,9 +1,14 @@
 # Per-app override: Alacritty.
 # Window class match: `Alacritty` (case-sensitive — verify with `hyprctl clients`).
+#
+# Terminal copy/paste use Ctrl+Shift+C / Ctrl+Shift+V to avoid the
+# Ctrl+C SIGINT conflict.
 
 [remap]
-BTN_SIDE = ["KEY_LEFTCTRL-KEY_LEFTSHIFT-KEY_C"]      # back thumb -> Ctrl+Shift+C  (copy in terminal)
-BTN_EXTRA = ["KEY_LEFTCTRL-KEY_LEFTSHIFT-KEY_V"]     # forward thumb -> Ctrl+Shift+V  (paste)
+KEY_F13 = ["KEY_LEFTCTRL-KEY_LEFTSHIFT-KEY_C"]      # bottom-left thumb (btn3) -> copy
+KEY_F14 = ["KEY_LEFTCTRL-KEY_LEFTSHIFT-KEY_V"]      # top-left thumb    (btn4) -> paste
+KEY_F15 = ["KEY_LEFTCTRL-KEY_LEFTSHIFT-KEY_T"]      # bottom-right      (btn5) -> new tmux/terminal pane
+KEY_F16 = ["KEY_LEFTCTRL-KEY_LEFTSHIFT-KEY_W"]      # top-right         (btn6) -> close tab
 
 [settings]
 GRAB_DEVICE = "true"

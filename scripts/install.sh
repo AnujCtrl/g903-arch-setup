@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 # Idempotent setup for G903 + Piper + makima on Arch Linux.
 # Re-running this script is safe: it skips already-completed steps.
+#
+# This installs everything but only enables the ratbagd daemon.
+# makima is installed and configured but left stopped/disabled — it
+# only needs to run when you add per-application overrides (see
+# docs/per-app-recipes.md). For the shipped global default, see
+# scripts/apply-defaults.sh which doesn't need makima at all.
 
 set -euo pipefail
 
@@ -35,12 +41,12 @@ sed "s|__USER__|$TARGET_USER|g" "$REPO_ROOT/systemd/makima-override.conf" > "$tm
 sudo install -Dm644 "$tmp_override" "$OVERRIDE_DST"
 rm -f "$tmp_override"
 
-# 3. Reload + enable services
-log "Reloading systemd and enabling ratbagd + makima"
+# 3. Reload systemd; enable ratbagd only (makima stays disabled).
+log "Reloading systemd and enabling ratbagd"
 sudo systemctl daemon-reload
-sudo systemctl enable --now ratbagd makima
+sudo systemctl enable --now ratbagd
 
-# 4. Seed user config dir if empty
+# 4. Seed user config dir if empty.
 if [ ! -d "$CONFIG_DIR" ]; then
   log "Creating $CONFIG_DIR"
   mkdir -p "$CONFIG_DIR"
@@ -63,5 +69,8 @@ systemctl is-active ratbagd makima 2>&1 | sed 's/^/      /'
 echo "    config dir:"
 ls -1 "$CONFIG_DIR" | sed 's/^/      /'
 
-log "Done. Launch \`piper\` to configure the mouse's onboard memory."
-log "Tail makima logs while pressing buttons: journalctl -u makima -f"
+log "Done. Next steps:"
+log "  - For the shipped workspace/focus defaults:  ./scripts/apply-defaults.sh"
+log "  - For per-app overrides:                     sudo systemctl enable --now makima"
+log "                                               then write TOMLs in $CONFIG_DIR"
+log "  - For DPI / LEDs / extra macros:             launch piper"

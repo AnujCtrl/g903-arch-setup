@@ -2,6 +2,12 @@
 # Apply the shipped default: thumb buttons -> F13-F16, Hyprland binds
 # them to workspace/focus navigation, cursor warps on workspace switch.
 #
+# This default does NOT use makima — global Hyprland binds handle it.
+# The script will stop the makima service if it's running, since running
+# makima with an empty config causes Hyprland to see every keypress
+# twice (real + virtual-keyboard echo). Re-enable makima only when you
+# add per-app TOMLs that need it: see docs/per-app-recipes.md.
+#
 # Idempotent: safe to re-run.
 
 set -euo pipefail
@@ -23,31 +29,43 @@ device="$(ratbagctl list 2>/dev/null | head -1 | cut -d: -f1)"
 [ -n "$device" ] || err "No libratbag device found. Is the mouse connected and ratbagd running?"
 log "Using libratbag device: $device"
 
-# 2. Activate profile 0 (so the layout matches a known baseline).
+# 2. Activate profile 0 (known baseline).
 log "Activating profile 0"
 ratbagctl "$device" profile active set 0 >/dev/null
 
-# 3. Write F13-F16 to buttons 4-7 on EVERY enabled profile.
-# The G903 has 5 onboard profiles; the profile-cycle button (index 11)
-# rotates through enabled ones. If we only set the active profile,
-# an accidental cycle reverts behavior. Setting all enabled profiles
-# makes cycling a no-op for the thumb layout.
+# 3. Write F13-F16 to thumb buttons (slots 3,4,5,6) on EVERY enabled profile.
+# Verified mapping (via evtest) on this hardware:
+#   btn 3 -> bottom-left thumb
+#   btn 4 -> top-left thumb
+#   btn 5 -> bottom-right thumb
+#   btn 6 -> top-right thumb
+# If your G903 disagrees, see docs/diagnostics.md to remap.
 enabled_profiles=$(
   ratbagctl "$device" info \
     | awk '/^Profile [0-9]+:/ && !/disabled/ { gsub(":", "", $2); print $2 }'
 )
-log "Writing F13-F16 to enabled profiles: $(echo $enabled_profiles | tr '\n' ' ')"
+log "Writing F13-F16 to thumb buttons on profiles: $(echo $enabled_profiles | tr '\n' ' ')"
 for p in $enabled_profiles; do
-  for i in 4 5 6 7; do
-    key="KEY_F$((13 + i - 4))"
+  # slot 3 -> F13, slot 4 -> F14, slot 5 -> F15, slot 6 -> F16
+  for i in 3 4 5 6; do
+    key="KEY_F$((13 + i - 3))"
     ratbagctl "$device" profile "$p" button "$i" action set macro "$key" >/dev/null
   done
 done
 
-log "Final button assignments:"
-ratbagctl "$device" info | grep -E '^Profile|^  Button: [4567]' | sed 's/^/    /'
+# 4. Reset wheel-tilt buttons (9, 10) to native horizontal scroll.
+# Some prior configs leave these as Ctrl+- / Ctrl+= browser-zoom macros,
+# which then leaks to terminals (zoom font there too).
+log "Resetting wheel-tilt buttons to native wheel-left / wheel-right"
+for p in $enabled_profiles; do
+  ratbagctl "$device" profile "$p" button 9  action set special wheel-left  >/dev/null 2>&1 || true
+  ratbagctl "$device" profile "$p" button 10 action set special wheel-right >/dev/null 2>&1 || true
+done
 
-# 3. Install Hyprland snippet.
+log "Final thumb-button assignments:"
+ratbagctl "$device" info | grep -E '^Profile|^  Button: [3-6]' | sed 's/^/    /'
+
+# 5. Install Hyprland snippet.
 if [ ! -d "$HYPR_DIR" ]; then
   warn "$HYPR_DIR does not exist — skipping Hyprland integration."
   warn "Manually copy hyprland/g903.conf into your compositor config."
@@ -57,7 +75,7 @@ fi
 log "Installing $HYPR_SNIPPET"
 install -Dm644 "$REPO_ROOT/hyprland/g903.conf" "$HYPR_SNIPPET"
 
-# 4. Make sure hyprland.conf sources it (only append if missing).
+# 6. Make sure hyprland.conf sources it (only append if missing).
 if [ -f "$HYPR_MAIN" ]; then
   if grep -qF "$SOURCE_LINE" "$HYPR_MAIN"; then
     log "hyprland.conf already sources g903.conf"
@@ -69,7 +87,18 @@ else
   warn "$HYPR_MAIN not found — created snippet but you'll need to source it manually."
 fi
 
-# 5. Reload Hyprland if running.
+# 7. Stop makima (global defaults don't need it; running it would
+#    create a virtual-keyboard echo that doubles every keypress).
+if systemctl is-active --quiet makima 2>/dev/null; then
+  log "Stopping makima service (not needed for global defaults — see docs/per-app-recipes.md)"
+  sudo systemctl stop makima
+fi
+if systemctl is-enabled --quiet makima 2>/dev/null; then
+  log "Disabling makima service from autostart"
+  sudo systemctl disable makima >/dev/null 2>&1 || true
+fi
+
+# 8. Reload Hyprland if running.
 if command -v hyprctl >/dev/null && [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
   log "Reloading Hyprland"
   hyprctl reload
@@ -77,5 +106,11 @@ else
   warn "Hyprland not running — restart it or run \`hyprctl reload\` later."
 fi
 
-log "Done. Press each thumb button while watching: journalctl -u makima -f"
-log "If any pair feels inverted, swap the dispatcher args in $HYPR_SNIPPET"
+log "Done."
+log "Verify each thumb button produces exactly ONE workspace or focus action:"
+log "  - top-left   -> next workspace"
+log "  - bottom-left-> previous workspace"
+log "  - top-right  -> focus right"
+log "  - bottom-right->focus left"
+log "If a press jumps by 2: makima may have restarted — sudo systemctl stop makima"
+log "If a pair feels inverted: swap dispatcher args in $HYPR_SNIPPET (no reflash needed)"

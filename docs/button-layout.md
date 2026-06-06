@@ -1,6 +1,6 @@
 # G903 button layout
 
-The G903 LIGHTSPEED is marketed as 11 programmable buttons. `ratbagctl` exposes **12 button indices (0–11)**.
+The G903 LIGHTSPEED is marketed as "7 to 11 programmable buttons." `ratbagctl` exposes **12 button indices (0–11)**, but not all correspond to a physical control — the mapping is hardware-dependent and was determined empirically here via `evtest`.
 
 ## Identifiers
 
@@ -14,47 +14,64 @@ The libratbag codename is stable across reboots but resets if you repair the mou
 
 ## Modular thumb buttons (the magnetic side caps)
 
-The G903 is fully ambidextrous and uses a **magnetic snap-on system** for its 4 thumb buttons:
+The G903 is fully ambidextrous and uses a **magnetic snap-on system** for its side modules. Each module has **2 buttons** (upper + lower), and both sides accept a module.
 
-- **2 buttons on the left side** of the mouse (default thumb buttons for right-handed grip).
-- **2 buttons on the right side** (default thumb buttons for left-handed grip; right-handers can install these as extra side buttons or leave them as blank covers).
+- Marketing says "11 programmable buttons" when both modules are installed.
+- The mouse ships with one button module and one blank cover.
+- Snap-on/off with magnets; no tools needed.
 
-Each side cap is either a 2-button module or a blank cover, and they snap on/off with magnets. The mouse ships with one button module and one blank module, plus the swap-in pieces in the box. Total physical thumb buttons available: **4** (when both modules are installed). Marketing calls the configuration "7 to 11 programmable buttons" — that range reflects whether side modules are installed.
+Removing a side module doesn't reshuffle `ratbagctl` indices — the buttons just stop emitting events.
 
-Removing a side module doesn't reshuffle `ratbagctl` indices — the indices for the missing buttons just stop emitting events.
+## Index → physical button (verified via evtest)
 
-## Index → physical button
+This table is **ground truth on this hardware**, confirmed by remapping each ratbagctl button slot to a unique `KEY_F*` and running `evtest /dev/input/eventN` while pressing each physical position:
 
-| Index | Physical button | Notes |
+| Index | Physical button | Verified emission |
 |---|---|---|
-| 0 | Left click | primary |
-| 1 | Right click | secondary |
+| 0 | Left click | primary mouse button |
+| 1 | Right click | secondary mouse button |
 | 2 | Middle click (scroll wheel press) | |
-| 3 | Wheel-mode toggle / top-front button | toggles ratchet ↔ free-spin in hardware by default |
-| 4 | **Left side — lower** thumb button | part of the left magnetic module |
-| 5 | **Left side — upper** thumb button | part of the left magnetic module |
-| 6 | **Right side — lower** thumb button | only emits when right cap module is installed |
-| 7 | **Right side — upper** thumb button | only emits when right cap module is installed |
-| 8 | DPI cycle (top of mouse, behind scroll) | |
-| 9 | Scroll wheel tilt **left** | libratbag reports as `wheel-left` |
-| 10 | Scroll wheel tilt **right** | libratbag reports as `wheel-right` |
-| 11 | Profile cycle (underside / behind sensor) | defaults to `profile-cycle-up` |
+| **3** | **Bottom-left thumb button** | emits assigned key (verified F17 → `KEY_F17` value 1/0) |
+| **4** | **Top-left thumb button** | emits assigned key (verified F13 → `KEY_F13` value 1/0) |
+| **5** | **Bottom-right thumb button** | emits assigned key (verified F14 → `KEY_F14` value 1/0) |
+| **6** | **Top-right thumb button** | emits assigned key (verified F15 → `KEY_F15` value 1/0) |
+| 7 | unknown — never observed firing | physical correspondence unclear on this unit |
+| 8 | DPI cycle (top of mouse, behind scroll) | emits when pressed |
+| 9 | Scroll wheel tilt **left** | libratbag default: `wheel-left` |
+| 10 | Scroll wheel tilt **right** | libratbag default: `wheel-right` |
+| 11 | Profile cycle (underside, near sensor) | libratbag default: `profile-cycle-up` |
 
-Caveat: which physical position corresponds to "upper" vs "lower" inside each side module is best confirmed by pressing each button while running `evtest` or watching `journalctl -u makima -f`. If a binding feels backwards after testing, just swap the dispatcher arguments rather than re-flashing Piper.
+### Important corrections from earlier assumptions
 
-## Verify physically
+If you've seen older docs in this repo (or in the libratbag wiki) that claim buttons 4–7 are the four thumb buttons and button 3 is a "wheel-mode toggle" — that's **wrong for the G903**. We verified with `evtest` that button **3** is the bottom-left thumb. There's no separate "front-of-scroll" button on the G903 in the first place.
 
-If you're unsure which physical button maps to which index, press one button while running:
+`btn7` never fired during any combination of physical-button presses we tried (thumb, top buttons, wheel tilts, DPI, profile). It exists as a programmable slot in firmware but has no corresponding switch on this unit — treat it as unusable.
 
-```bash
-ratbagctl <device> button 4 action get      # change 4 to each index
-```
+## Verifying on your own G903
 
-…or watch raw events from the evdev node:
+The non-destructive workflow: assign each slot a unique `KEY_F*` and watch raw events.
 
 ```bash
-sudo evtest /dev/input/eventN               # find N via 'cat /proc/bus/input/devices'
+# 1. Get device codename
+ratbagctl list
+
+# 2. Assign unique F-keys to slots we care about
+ratbagctl <device> button 3 action set macro KEY_F13
+ratbagctl <device> button 4 action set macro KEY_F14
+ratbagctl <device> button 5 action set macro KEY_F15
+ratbagctl <device> button 6 action set macro KEY_F16
+ratbagctl <device> button 7 action set macro KEY_F17
+ratbagctl <device> button 8 action set macro KEY_F18
+
+# 3. Find the mouse's event device
+grep -B1 -A4 "Logitech G903" /proc/bus/input/devices
+
+# 4. Stream raw events
+sudo pacman -S evtest
+evtest /dev/input/eventN          # N from step 3, e.g. event9
 ```
+
+Press each physical button once and note which `KEY_F*` value 1/0 pair appears. That's your per-unit mapping. See [diagnostics.md](diagnostics.md) for the full debugging methodology this repo's defaults are based on.
 
 ## Reading the current profile
 
@@ -65,20 +82,24 @@ ratbagctl <device> info
 Sample output for an in-use profile:
 
 ```
-Profile 0:
+Profile 0: (active)
   Resolutions:
     0: 800dpi
     1: 850dpi (active) (default)
   Button: 0 is mapped to 'button 1'
   Button: 1 is mapped to 'button 2'
+  Button: 2 is mapped to 'button 3'
+  Button: 3 is mapped to macro '↕KEY_F13'
+  Button: 4 is mapped to macro '↕KEY_F14'
+  Button: 5 is mapped to macro '↕KEY_F15'
+  Button: 6 is mapped to macro '↕KEY_F16'
   ...
-  Button: 9 is mapped to macro '↓KEY_LEFTCTRL ↕KEY_MINUS ↑KEY_LEFTCTRL'    # tilt-left → Ctrl+-
-  Button: 10 is mapped to macro '↓KEY_LEFTCTRL ↕KEY_EQUAL ↑KEY_LEFTCTRL'   # tilt-right → Ctrl+=
   Button: 11 is mapped to 'profile-cycle-up'
 ```
 
 ## Quirks
 
 - `ratbagd` sometimes needs a restart after unplug/repair to re-detect the mouse: `sudo systemctl restart ratbagd` (libratbag issue #1193).
-- Piper's GUI dropdown is incomplete — no F13–F24, some media keys. Use `ratbagctl <device> button N action set macro KEY_F13` (or similar) for those.
-- The G903 has 5 onboard profiles (0–4). `ratbagctl <device> profile N enable` activates one, `<device> button N` operates on the currently active profile unless you prefix `profile N`.
+- Piper's GUI dropdown is incomplete — no F13–F24, some media keys. Use `ratbagctl <device> button N action set macro KEY_F13` for those.
+- The G903 has 5 onboard profiles (0–4). `ratbagctl <device> button N` operates on the currently active profile unless you prefix `profile P`.
+- Setting button macros on only the active profile means an accidental press of the profile-cycle button (index 11) reverts to whatever the other enabled profile holds. Write to all enabled profiles to make cycling a no-op for thumb layout.
