@@ -36,6 +36,19 @@ The shipped default turns the G903's 4 thumb buttons into a workspace/window nav
 
 Mental model: **top row = workspaces, bottom row = windows. Left side = previous, right side = next. Wheel tilt = clipboard (left = take, right = give).**
 
+### Visible in Omarchy's `Super+K` keybindings menu
+
+`hyprland/g903.conf` uses `bindd` (bind-with-description) rather than plain `bind`, so each entry shows up in the `omarchy-menu-keybindings` walker view alongside the rest of your shortcuts. The `Super+K` browser will list:
+
+- `G903 top-left thumb → workspace LEFT`
+- `G903 top-right thumb → workspace RIGHT`
+- `G903 bottom-left thumb → previous window`
+- `G903 bottom-right thumb → next window`
+- `G903 wheel tilt LEFT → copy`
+- `G903 wheel tilt RIGHT → paste`
+
+Omarchy's script reverse-maps `code:191` → keysym `F13` etc. when displaying, so the key column reads as `F13`, `F14`, … instead of raw codes. If you add your own bindings to this snippet, use `bindd` (not `bind`) and put your description in the third field — use `→`, `:`, or `;` instead of `,` (which is the field delimiter).
+
 ### Why `Ctrl+Insert` / `Shift+Insert` for copy/paste
 
 This is Omarchy's pattern (see `~/.local/share/omarchy/default/hypr/bindings/clipboard.conf`). It's the **universal** clipboard chord on Linux/Wayland: terminals don't intercept `Ctrl+Insert` the way they intercept `Ctrl+C` (SIGINT), so the same gesture works in your shell, your browser, your IDE, and Electron apps without a per-app override. Hyprland's `sendshortcut` dispatcher synthesizes the chord and sends it to the focused window.
