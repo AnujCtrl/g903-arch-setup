@@ -8,25 +8,37 @@ The shipped default turns the G903's 4 thumb buttons into a workspace/window nav
 
 ```
         ┌─────────────────┐               ┌─────────────────┐
-        │     LEFT SIDE   │               │   RIGHT SIDE    │
-        │     workspaces  │               │      focus      │
+        │   LEFT SIDE     │               │   RIGHT SIDE    │
         │   ┌─────────┐   │               │   ┌─────────┐   │
-        │   │  upper  │───┼─► F14, e+1    │   │  upper  │───┼─► F16, movefocus r
-        │   └─────────┘   │     (next)    │   └─────────┘   │
+        │   │  TOP    │───┼─► F14         │   │  TOP    │───┼─► F16
+        │   │         │   │   workspace   │   │         │   │   workspace
+        │   │         │   │   LEFT (e-1)  │   │         │   │   RIGHT (e+1)
+        │   └─────────┘   │               │   └─────────┘   │
         │   ┌─────────┐   │               │   ┌─────────┐   │
-        │   │  lower  │───┼─► F13, e-1    │   │  lower  │───┼─► F15, movefocus l
-        │   └─────────┘   │     (prev)    │   └─────────┘   │
+        │   │  BOTTOM │───┼─► F13         │   │  BOTTOM │───┼─► F15
+        │   │         │   │   window      │   │         │   │   window
+        │   │         │   │   PREV (cyc)  │   │         │   │   NEXT (cyc)
+        │   └─────────┘   │               │   └─────────┘   │
         └─────────────────┘               └─────────────────┘
+
+       TOP row    -> workspace navigation (left = prev, right = next)
+       BOTTOM row -> window cycling within the active workspace
 ```
 
 | Physical | `ratbagctl` index | Key emitted | Keycode | Hyprland action |
 |---|---|---|---|---|
-| Top-left thumb | 4 | `F14` | 192 | `workspace, e+1` |
-| Bottom-left thumb | 3 | `F13` | 191 | `workspace, e-1` |
-| Top-right thumb | 6 | `F16` | 194 | `movefocus, r` |
-| Bottom-right thumb | 5 | `F15` | 193 | `movefocus, l` |
+| Top-left thumb | 4 | `F14` | 192 | `workspace, e-1` (workspace left) |
+| Top-right thumb | 6 | `F16` | 194 | `workspace, e+1` (workspace right) |
+| Bottom-left thumb | 3 | `F13` | 191 | `cyclenext, prev` (previous window) |
+| Bottom-right thumb | 5 | `F15` | 193 | `cyclenext` (next window) |
 
-Mental model: **top = forward, bottom = back.**
+Mental model: **top row = workspaces, bottom row = windows. Left side = previous, right side = next.**
+
+## Why `cyclenext` instead of `movefocus l/r`
+
+`movefocus l` does a strictly-directional focus move based on Hyprland's layout tree. With a vertical split — say a top window and a bottom window side-by-side with a third window — pressing left/right from the top window can never reach the bottom one; you'd need `movefocus d`. That's a UX wart for a "give me the next window" gesture.
+
+`cyclenext` iterates every window on the active workspace in tab order (with `, prev` for backward cycling). A single pair of buttons covers every window regardless of layout, including stacked / tabbed / vertically-split arrangements.
 
 ## Why F13–F16
 

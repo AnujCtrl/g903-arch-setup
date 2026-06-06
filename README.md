@@ -26,7 +26,7 @@ cd g903-arch-setup
 1. Activates profile 0 and writes `KEY_F13`–`KEY_F16` to **thumb buttons 3, 4, 5, 6** on every enabled onboard profile (verified positions via `evtest`).
 2. Resets wheel-tilt buttons (9, 10) to native horizontal scroll.
 3. Installs `hyprland/g903.conf` and wires `source =` into `~/.config/hypr/hyprland.conf`.
-4. Binds workspace prev/next on the **left** side, `movefocus l/r` on the **right** side.
+4. Binds workspaces on the **top row** (top-left = prev, top-right = next) and window cycling on the **bottom row** (bottom-left = previous window, bottom-right = next window) using `cyclenext`, which iterates all windows regardless of layout direction.
 5. Enables `cursor:warp_on_change_workspace` so the pointer follows focus.
 6. Ensures the makima service is stopped (global defaults don't need it).
 
