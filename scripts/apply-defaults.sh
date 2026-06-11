@@ -90,15 +90,26 @@ else
   warn "$HYPR_MAIN not found — created snippet but you'll need to source it manually."
 fi
 
-# 7. Stop makima (global defaults don't need it; running it would
+# 7. Mask makima (global defaults don't need it; running it would
 #    create a virtual-keyboard echo that doubles every keypress).
+#
+# Why mask (not just disable):
+#   - `disable` only removes the autostart symlink. Anything — a pacman
+#     hook, an Omarchy update, a manual `systemctl start` — can quietly
+#     bring it back, and the echo doubling returns silently.
+#   - `mask` symlinks the unit to /dev/null. start/enable then fail
+#     until you explicitly unmask. Survives reboots and package updates.
+# To bring makima back for per-app overrides:
+#   sudo systemctl unmask makima && sudo systemctl enable --now makima
+# See docs/per-app-recipes.md for the per-app workflow.
 if systemctl is-active --quiet makima 2>/dev/null; then
-  log "Stopping makima service (not needed for global defaults — see docs/per-app-recipes.md)"
+  log "Stopping makima service"
   sudo systemctl stop makima
 fi
-if systemctl is-enabled --quiet makima 2>/dev/null; then
-  log "Disabling makima service from autostart"
+if [ "$(systemctl is-enabled makima 2>/dev/null)" != "masked" ]; then
+  log "Masking makima service (irreversible until 'systemctl unmask makima')"
   sudo systemctl disable makima >/dev/null 2>&1 || true
+  sudo systemctl mask makima
 fi
 
 # 8. Reload Hyprland if running.

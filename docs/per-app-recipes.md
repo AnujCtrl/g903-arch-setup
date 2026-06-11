@@ -9,12 +9,15 @@ makima loads one TOML per device, plus optional per-window-class overrides selec
 | Same behavior in every app (workspace switching, focus movement, global shortcut) | **Hyprland binds** — see [defaults.md](defaults.md). makima not needed. |
 | Different behavior per app (Firefox close-tab on thumb, terminal copy on thumb) | **makima** — keep reading. |
 
-`apply-defaults.sh` stops the makima service because the default mapping is global-only. **You'll need to start it before per-app TOMLs take effect:**
+`apply-defaults.sh` **masks** the makima service (`systemctl mask`) so a pacman hook, Omarchy update, or stray `systemctl start` can't quietly reintroduce it — which would silently re-enable the echo-doubling behavior. **To bring makima back for per-app TOMLs you have to unmask it first:**
 
 ```bash
+sudo systemctl unmask makima
 sudo systemctl enable --now makima
 journalctl -u makima -f                   # tail to confirm it picks up your TOMLs
 ```
+
+The `mask` choice is deliberate. `disable` alone wasn't durable — the service kept getting silently re-enabled (likely by a pacman post-install hook on a `makima-bin` update), reintroducing the workspace-jumps-by-2 bug after a reboot. `mask` symlinks the unit to `/dev/null` so only an explicit `unmask` brings it back.
 
 ## The echo gotcha
 

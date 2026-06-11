@@ -93,11 +93,11 @@ What it does:
 
 1. Activates profile 0 on the mouse (known baseline).
 2. Writes `KEY_F13`–`KEY_F16` to **buttons 3, 4, 5, 6** on every enabled onboard profile.
-3. Resets wheel-tilt buttons (9, 10) to their native `wheel-left` / `wheel-right` actions (so they horizontally scroll, not act as browser-zoom macros).
+3. Maps wheel-tilt buttons (9, 10) to `KEY_F23` / `KEY_F24` so Hyprland binds them to Omarchy's universal copy/paste.
 4. Installs `hyprland/g903.conf` to `~/.config/hypr/g903.conf`.
 5. Appends `source = ~/.config/hypr/g903.conf` to `~/.config/hypr/hyprland.conf` (idempotent — only adds if not already present).
 6. Runs `hyprctl reload`.
-7. Ensures the `makima` service is stopped — global defaults don't need it.
+7. **Masks** the `makima` service (`systemctl mask`) — global defaults don't need it, and `disable` alone wasn't durable: a pacman post-install hook or Omarchy update was silently re-enabling makima between sessions, which silently re-introduced the workspace-jumps-by-2 echo bug. Masking forces an explicit `unmask` to bring it back. See [per-app-recipes.md](per-app-recipes.md) for the unmask + per-app workflow.
 
 ### Why all enabled profiles
 
@@ -108,7 +108,7 @@ The G903 stores 5 onboard profiles (0–4) and the profile-cycle button (index 1
 Press each thumb button and watch the result:
 
 - Each press should produce exactly **one** workspace switch or focus movement (no doubles).
-- If you see doubles, the makima service may have re-enabled itself: `sudo systemctl stop makima` and re-test.
+- If you see doubles, the makima service may have been unmasked or re-enabled: `systemctl is-enabled makima` — if it's anything other than `masked`, run `sudo systemctl mask makima` and re-test.
 - For a definitive read of what each button emits, use `evtest`:
 
 ```bash
